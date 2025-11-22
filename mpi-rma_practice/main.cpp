@@ -27,19 +27,23 @@ int main(int argc, char *argv[]) {
 		std::print("{} ", i);
 	std::print("\n");
 
-	// Create a window for both processes based on the buffer being put/get.
+	// Create a window for both processes based on the buffer being put.
 	MPI_Win win;
 	if (rank == 0)
-		MPI_Win_create(MPI_BOTTOM, 0, sizeof(int), MPI_INFO_NULL, comm, &win);
+		MPI_Win_create(MPI_BOTTOM, 0, sizeof(float), MPI_INFO_NULL, comm, &win);
 	else
+		/* Expose the memory we want to put data into, and specify the current
+		 * byte size of the buffer. */
 		MPI_Win_create(buf.data(), buf.size() * sizeof(float), sizeof(float),
 				MPI_INFO_NULL, comm, &win);
 
+	// Put ten floats from rank 0's buffer into rank 1's window. 
 	MPI_Win_fence(0, win);
 	if (rank == 0)
-		MPI_Put(buf.data(), buf.size() * sizeof(float), MPI_FLOAT, 1, 0,
-				sizeof(int), MPI_FLOAT, win);
+		MPI_Put(buf.data(), buf.size(), MPI_FLOAT, 1, 0,
+				buf.size(), MPI_FLOAT, win);
 
+	// Complete the 'Put' operation.
 	MPI_Win_fence(0, win);
 
 	std::print("rank: {}, buffer: ", rank);
@@ -47,7 +51,10 @@ int main(int argc, char *argv[]) {
 		std::print("{} ", i);
 	std::print("\n");
 
+	// Free resources used for this operation: window, custom communicator.
 	MPI_Win_free(&win);
+	MPI_Comm_free(&comm);
+
 	MPI_Finalize();
 	return EXIT_SUCCESS;
 }
