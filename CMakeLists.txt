@@ -12,11 +12,11 @@ find_package(MPI REQUIRED)
 # === Specify the compiler. ===
 set(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
 
-set(MAIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mpi-rma_practice)
+set(PROJ_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mpi-rma_practice)
 
 # === Executable definition. ===
 add_executable(mpi-rma
-	${MAIN_DIR}/main.cpp
+	${PROJ_DIR}/main.cpp
 )
 
 # === Included items to be compiled against 'mpi-rma'. ===
