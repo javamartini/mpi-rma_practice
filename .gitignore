@@ -1,2 +1,5 @@
 # Executables and CMake build fileage.
 build/
+
+# Caching directory for CLangd.
+.cache/

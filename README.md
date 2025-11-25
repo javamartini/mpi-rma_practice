@@ -6,7 +6,12 @@ libfabric, I would hopefully have a better concept mentally.
 
 ## Usage
 
-There is no usage yet. =-=
+In it's current state, it shouldn't be ran by more than 2 processes. There are
+no arguments. Just run it with `mpirun`.
+
+```
+mpirun -n 2 ./build/mpi-rma
+```
 
 ## Building
 
