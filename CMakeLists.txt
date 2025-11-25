@@ -21,6 +21,7 @@ add_executable(mpi-rma
 
 # === Included items to be compiled against 'mpi-rma'. ===
 target_include_directories(mpi-rma
+	PRIVATE ${PROJ_DIR}/include
 	PRIVATE ${MPI_INCLUDE_PATH}
 )
 
