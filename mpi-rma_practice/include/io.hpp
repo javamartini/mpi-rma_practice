@@ -2,12 +2,12 @@
 #define IO_HPP
 
 // For inter-process communication.
-#include "comm.hpp"
 #include <mpi.h>
 
 #include <filesystem>
-#include <iostream>
 #include <string>
+
+struct WorldInfo;   // Forward declaration of MPI world info.
 
 namespace filesys = std::filesystem;
 

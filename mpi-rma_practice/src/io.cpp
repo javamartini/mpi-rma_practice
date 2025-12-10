@@ -1,4 +1,8 @@
 #include "io.hpp"
+#include "comm.hpp"
+
+#include <mpi.h>
+#include <iostream>
 
 // Ensure the data directory is present for data storage.
 int ensure_data_dir(WorldInfo* info, filesys::path& file_path) {
@@ -7,7 +11,6 @@ int ensure_data_dir(WorldInfo* info, filesys::path& file_path) {
 	}
 
 	try {
-		// Gather the directory of the file path.
 		filesys::path dir = file_path.parent_path();
 
 		// Ensure the directory is present.
