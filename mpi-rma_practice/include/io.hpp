@@ -16,6 +16,6 @@ int ensure_data_dir(WorldInfo* info, filesys::path& file_path);
 
 // Write execution time data of each process to a file.
 int write_execution_time(WorldInfo* info, MPI_File* file, std::string& op,
-	double* exec_time);
+                         double* exec_time);
 
 #endif // IP_HPP
