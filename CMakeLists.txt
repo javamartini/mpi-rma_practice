@@ -17,6 +17,7 @@ set(PROJ_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mpi-rma_practice)
 # === Executable definition. ===
 add_executable(mpi-rma
 	${PROJ_DIR}/main.cpp
+	${PROJ_DIR}/src/io.cpp
 )
 
 # === Included items to be compiled against 'mpi-rma'. ===
