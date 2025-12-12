@@ -2,6 +2,7 @@
 #include "comm.hpp"
 #include <mpi.h>
 
+// I/O-related headers and libraries.
 #include "io.hpp"
 #include <filesystem>
 
@@ -16,7 +17,7 @@ int main(int argc, char *argv[]) {
   MPI_Status status;
   std::string data_file_path_str =
       "/home/javontae/.local/state/mpi-rma_practice/exec_times.csv";
-  int ret_code = -1;
+  int rc = -1;
 
   MPI_Init(&argc, &argv);
 
@@ -24,11 +25,16 @@ int main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &info.rank);
   MPI_Comm_size(MPI_COMM_WORLD, &info.size);
 
-  if (info.rank == 0) {
-    filesys::path data_file_path(data_file_path_str);
-    ret_code = ensure_data_dir(&info, data_file_path);
-    if (ret_code != 0)
-      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  filesys::path data_file_path(data_file_path_str);
+  if (info.rank == 0)
+    rc = ensure_data_dir(&info, data_file_path);
+
+  MPI_Bcast(&rc, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  if (rc != 0) {
+    std::print(stderr,
+               "Rank {} aborting due to exit code of ensure_data_dir(): {}\n",
+               info.rank, rc);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -74,6 +80,7 @@ int main(int argc, char *argv[]) {
   // Stop timing and calculate the execution time.
   const double end_time = MPI_Wtime();
   const double execution_time = end_time - start_time;
+  std::print("{}\n", execution_time);
 
   std::print("rank: {}, buffer: ", info.rank);
   for (auto i : buf)
@@ -82,22 +89,27 @@ int main(int argc, char *argv[]) {
 
   MPI_Barrier(MPI_COMM_WORLD);
 
+  // Modify MPI settings to force filesystem driver.
+  MPI_Info ih;
+  MPI_Info_set(ih, "io_library", "romio_posix");
+
   // Open a file for storing collected data.
-  MPI_File file;
-  ret_code = MPI_File_open(MPI_COMM_WORLD, data_file_path_str.c_str(),
-                           MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL,
-                           &file);
-  if (ret_code != MPI_SUCCESS) {
+  MPI_File fh;
+  rc = MPI_File_open(MPI_COMM_WORLD,
+                     data_file_path_str.c_str(),
+                     MPI_MODE_CREATE | MPI_MODE_RDWR, ih, &fh);
+  if (rc != MPI_SUCCESS) {
     char err_str[MPI_MAX_ERROR_STRING];
     int err_len = -1;
-    MPI_Error_string(ret_code, err_str, &err_len);
+    MPI_Error_string(rc, err_str, &err_len);
     std::print(stderr, "MPI_File_open(): {}\n", err_str);
 
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
 
   // Free gathered resources.
-  MPI_File_close(&file);
+  MPI_Info_free(&ih);
+  MPI_File_close(&fh);
   MPI_Win_free(&win);
   MPI_Comm_free(&comm);
   MPI_Finalize();
