@@ -6,3 +6,6 @@ build/
 
 # Project directory of QT Creator.
 .qtcreator/
+
+# Directory for SLURM scripts.
+slurm/
