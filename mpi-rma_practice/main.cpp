@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <print>
+#include <iostream>
 #include <cstdlib>
 
 int main(int argc, char *argv[]) {
@@ -31,9 +31,9 @@ int main(int argc, char *argv[]) {
 
   MPI_Bcast(&rc, 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (rc != 0) {
-    std::print(stderr,
-               "Rank {} aborting due to exit code of ensure_data_dir(): {}\n",
-               info.rank, rc);
+    std::cerr << "Rank " << info.rank <<
+                 " aborting due to exit code of ensure_data_dir(): " << rc <<
+                 std::endl;
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
 
@@ -49,10 +49,10 @@ int main(int argc, char *argv[]) {
   if (info.rank == 0)
     std::fill(buf.begin(), buf.end(), 32.4);
 
-  std::print("rank: {}, buffer: ", info.rank);
-  for (auto i : buf)
-    std::print("{} ", i);
-  std::print("\n");
+    std::cout << "rank: " << info.rank << ", buffer: ";
+    for (auto i : buf)
+      std::cout << i << " ";
+    std::cout << std::endl;
 
   // Create a window for both processes based on the buffer being put.
   MPI_Win win;
@@ -80,35 +80,30 @@ int main(int argc, char *argv[]) {
   // Stop timing and calculate the execution time.
   const double end_time = MPI_Wtime();
   const double execution_time = end_time - start_time;
-  std::print("{}\n", execution_time);
+  std::cout << execution_time << std::endl;
 
-  std::print("rank: {}, buffer: ", info.rank);
+  std::cout << "rank: " << info.rank << ", buffer: ";
   for (auto i : buf)
-    std::print("{} ", i);
-  std::print("\n");
+    std::cout << i << " ";
+  std::cout << std::endl;
 
   MPI_Barrier(MPI_COMM_WORLD);
-
-  // Modify MPI settings to force filesystem driver.
-  MPI_Info ih;
-  MPI_Info_set(ih, "io_library", "romio_posix");
 
   // Open a file for storing collected data.
   MPI_File fh;
   rc = MPI_File_open(MPI_COMM_WORLD,
                      data_file_path_str.c_str(),
-                     MPI_MODE_CREATE | MPI_MODE_RDWR, ih, &fh);
+                     MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
   if (rc != MPI_SUCCESS) {
     char err_str[MPI_MAX_ERROR_STRING];
     int err_len = -1;
     MPI_Error_string(rc, err_str, &err_len);
-    std::print(stderr, "MPI_File_open(): {}\n", err_str);
+    std::cerr << "MPI_File_open(): " << err_str << std::endl;
 
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
 
   // Free gathered resources.
-  MPI_Info_free(&ih);
   MPI_File_close(&fh);
   MPI_Win_free(&win);
   MPI_Comm_free(&comm);
