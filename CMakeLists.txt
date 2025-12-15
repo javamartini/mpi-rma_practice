@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.26)
 project(mpi-rma_practice CXX)
 
 # === Development-related arguments. ===
