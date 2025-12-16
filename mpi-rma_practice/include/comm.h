@@ -1,9 +1,9 @@
 #ifndef COMM_H
 #define COMM_H
 
-struct WorldInfo {
-  int rank = -1;
-  int size = -1;
-};
+typedef struct {
+  int rank;
+  int size;
+} WorldInfo;
 
 #endif // COMM_H
