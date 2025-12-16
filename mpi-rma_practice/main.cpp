@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
   WorldInfo info;
   MPI_Status status;
   std::string data_file_path_str =
-      "/home/javontae/.local/state/mpi-rma_practice/exec_times.csv";
+      "/home/x-jmartin7/.local/state/mpi-rma_practice/exec_times.csv";
   int rc = -1;
 
   MPI_Init(&argc, &argv);
