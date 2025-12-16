@@ -1,9 +1,9 @@
-#ifndef COMM_HPP
-#define COMM_HPP
+#ifndef COMM_H
+#define COMM_H
 
 struct WorldInfo {
   int rank = -1;
   int size = -1;
 };
 
-#endif // COMM_HPP
+#endif // COMM_H
