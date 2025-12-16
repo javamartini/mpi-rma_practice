@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 // Ensure the data directory is present.
-int ensure_data_dir(WorldInfo* info, const char* data_dir) {
+int ensure_data_dir(WorldInfo* info, const char* data_dir_path) {
   if (info->rank != 0) {
     return 0;
   }
