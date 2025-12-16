@@ -1,22 +1,18 @@
 // Inter-process commmunication.
-#include "comm.hpp"
+#include "comm.h"
 #include <mpi.h>
 
 // I/O-related headers and libraries.
-#include "io.hpp"
-#include <filesystem>
+#include "io.h"
 
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <iostream>
-#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[]) {
   WorldInfo info;
   MPI_Status status;
-  std::string data_file_path_str =
-      "/home/x-jmartin7/.local/state/mpi-rma_practice/exec_times.csv";
+  const char data_dir_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/";
+  char data_file_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/exec_times.csv";
   int rc = -1;
 
   MPI_Init(&argc, &argv);
@@ -25,15 +21,15 @@ int main(int argc, char *argv[]) {
   MPI_Comm_rank(MPI_COMM_WORLD, &info.rank);
   MPI_Comm_size(MPI_COMM_WORLD, &info.size);
 
-  filesys::path data_file_path(data_file_path_str);
-  if (info.rank == 0)
-    rc = ensure_data_dir(&info, data_file_path);
+  if (info.rank == 0) {
+    rc = ensure_data_dir(&info, &data_dir_path);
+  }
 
   MPI_Bcast(&rc, 1, MPI_INT, 0, MPI_COMM_WORLD);
   if (rc != 0) {
-    std::cerr << "Rank " << info.rank <<
-                 " aborting due to exit code of ensure_data_dir(): " << rc <<
-                 std::endl;
+    fprintf(stderr,
+            "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
+            info.rank, rc);
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
 
@@ -45,14 +41,19 @@ int main(int argc, char *argv[]) {
   MPI_Comm_split(MPI_COMM_WORLD, info.rank <= 1, info.rank, &comm);
 
   // Make a message to make availble via a window.
-  std::vector<float> buf(10);
-  if (info.rank == 0)
-    std::fill(buf.begin(), buf.end(), 32.4);
+  float buf[10];
+  if (info.rank == 0) {
+    for (int i = 0; i < 10; i++) {
+      buf[i] = 32.4;
+    }
+  }
+  size_t buf_size = sizeof(buf) / sizeof(buf[0]);
 
-    std::cout << "rank: " << info.rank << ", buffer: ";
-    for (auto i : buf)
-      std::cout << i << " ";
-    std::cout << std::endl;
+  printf("rank: %d, buffer: ");
+  for (size_t i = 0; i < buf_size; i++) {
+    printf("%f ");
+  }
+  printf("\n");
 
   // Create a window for both processes based on the buffer being put.
   MPI_Win win;
@@ -61,8 +62,8 @@ int main(int argc, char *argv[]) {
   } else {
     /* Expose the memory we want to put data into, and specify the current
      * byte size of the buffer. */
-    MPI_Win_create(buf.data(), buf.size() * sizeof(float), sizeof(float),
-                   MPI_INFO_NULL, comm, &win);
+    MPI_Win_create(buf, buf_size * sizeof(float), sizeof(float), MPI_INFO_NULL,
+                   comm, &win);
   }
 
   // Start timing.
@@ -70,9 +71,9 @@ int main(int argc, char *argv[]) {
 
   // Put ten floats from rank 0's buffer into rank 1's window.
   MPI_Win_fence(0, win);
-  if (info.rank == 0)
-    MPI_Put(buf.data(), buf.size(), MPI_FLOAT, 1, 0, buf.size(), MPI_FLOAT,
-            win);
+  if (info.rank == 0) {
+    MPI_Put(buf, buf_size, MPI_FLOAT, 1, 0, buf_size, MPI_FLOAT, win);
+  }
 
   // Complete the 'Put' operation.
   MPI_Win_fence(0, win);
@@ -80,25 +81,26 @@ int main(int argc, char *argv[]) {
   // Stop timing and calculate the execution time.
   const double end_time = MPI_Wtime();
   const double execution_time = end_time - start_time;
-  std::cout << execution_time << std::endl;
+  printf("execution time: %f\n");
 
-  std::cout << "rank: " << info.rank << ", buffer: ";
-  for (auto i : buf)
-    std::cout << i << " ";
-  std::cout << std::endl;
+  printf("rank: %d, buffer: ");
+  for (size_t i = 0; i < buf_size; i++) {
+    printf("%f ");
+  }
+  printf("\n");
 
   MPI_Barrier(MPI_COMM_WORLD);
 
   // Open a file for storing collected data.
   MPI_File fh;
   rc = MPI_File_open(MPI_COMM_WORLD,
-                     data_file_path_str.c_str(),
+                     data_file_path,
                      MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL, &fh);
   if (rc != MPI_SUCCESS) {
     char err_str[MPI_MAX_ERROR_STRING];
     int err_len = -1;
     MPI_Error_string(rc, err_str, &err_len);
-    std::cerr << "MPI_File_open(): " << err_str << std::endl;
+    fprintf(stderr, "MPI_File_open(): %s\n", err_str);
 
     MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
