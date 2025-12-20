@@ -11,8 +11,8 @@
 int main(int argc, char *argv[]) {
   WorldInfo info;
   MPI_Status status;
-  const char data_dir_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/";
-  char data_file_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/exec_times.csv";
+  const char* data_dir_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/";
+  char* data_file_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/exec_times.csv";
   int rc = -1;
 
   MPI_Init(&argc, &argv);
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
   MPI_Comm_size(MPI_COMM_WORLD, &info.size);
 
   if (info.rank == 0) {
-    rc = ensure_data_dir(&info, &data_dir_path);
+    rc = ensure_data_dir(&info, data_dir_path);
   }
 
   MPI_Bcast(&rc, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -49,9 +49,9 @@ int main(int argc, char *argv[]) {
   }
   size_t buf_size = sizeof(buf) / sizeof(buf[0]);
 
-  printf("rank: %d, buffer: ");
+  printf("rank: %d, buffer: ", info.rank);
   for (size_t i = 0; i < buf_size; i++) {
-    printf("%f ");
+    printf("%f ", i);
   }
   printf("\n");
 
@@ -81,11 +81,11 @@ int main(int argc, char *argv[]) {
   // Stop timing and calculate the execution time.
   const double end_time = MPI_Wtime();
   const double execution_time = end_time - start_time;
-  printf("execution time: %f\n");
+  printf("execution time: %f\n", execution_time);
 
-  printf("rank: %d, buffer: ");
+  printf("rank: %d, buffer: ", info.rank);
   for (size_t i = 0; i < buf_size; i++) {
-    printf("%f ");
+    printf("%f ", i);
   }
   printf("\n");
 
