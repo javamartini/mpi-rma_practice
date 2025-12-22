@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MSG_SIZE 10
+
 int main(int argc, char *argv[]) {
     WorldInfo info;
     MPI_Status status;
@@ -41,10 +43,14 @@ int main(int argc, char *argv[]) {
     MPI_Comm_split(MPI_COMM_WORLD, info.rank <= 1, info.rank, &comm);
 
     // Make a message to make availble via a window.
-    float buf[10];
+    float buf[MSG_SIZE];
     if (info.rank == 0) {
-        for (int i = 0; i < 10; i++) {
-        buf[i] = 32.4;
+        for (int i = 0; i < MSG_SIZE; i++) {
+            buf[i] = 32.4;
+        }
+    } else {
+        for (int i = 0; i < MSG_SIZE; i++) {
+            buf[i] = 0;
         }
     }
     size_t buf_size = sizeof(buf) / sizeof(buf[0]);
