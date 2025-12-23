@@ -8,7 +8,7 @@
 /* This is wrapped in a do-while loop so this macro function is compatible with
  * conditional statements that uses no braces. The braces of the do-while loop
  * enforces running the entire macro function instead of it's first line. */
-#define MPI_CHECK(fn)                                                       \
+#define MPI_CHECK(fn, is_exit)                                              \
     do {                                                                    \
         int _rc = (fn);                                                     \
         if (_rc != MPI_SUCCESS) {                                           \
@@ -17,7 +17,9 @@
             MPI_Error_string(_rc, _err_str, &_err_len);                     \
             fprintf(stderr, "[%s,%d] MPI ERROR: %s\n", __FILE__, __LINE__,  \
                     _err_str);                                              \
-            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);                        \
+            if (is_exit) {                                                  \
+                MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);                    \
+            }                                                               \
         }                                                                   \
     } while (0)
 

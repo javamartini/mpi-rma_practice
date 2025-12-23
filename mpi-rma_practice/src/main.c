@@ -11,8 +11,6 @@
 
 #define MSG_SIZE 10
 
-/* TODO. Probably implement the error checking for MPI in such a way where
- * it is a programmer choice to abort the program upon failure. */
 
 int main(int argc, char *argv[]) {
     WorldInfo info;
@@ -21,7 +19,7 @@ int main(int argc, char *argv[]) {
     char* data_file_path = "/home/x-jmartin7/.local/state/mpi-rma_practice/exec_times.csv";
     int rc = -1;
 
-    MPI_CHECK(MPI_Init(&argc, &argv));
+    MPI_CHECK(MPI_Init(&argc, &argv), true);
 
     // Capture the current process rank and the total number of processes.
     MPI_Comm_rank(MPI_COMM_WORLD, &info.rank);
@@ -31,7 +29,7 @@ int main(int argc, char *argv[]) {
         rc = ensure_data_dir(&info, data_dir_path);
     }
 
-    MPI_CHECK(MPI_Bcast(&rc, 1, MPI_INT, 0, MPI_COMM_WORLD));
+    MPI_CHECK(MPI_Bcast(&rc, 1, MPI_INT, 0, MPI_COMM_WORLD), true);
     if (rc != 0) {
         fprintf(stderr,
                 "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
@@ -44,7 +42,7 @@ int main(int argc, char *argv[]) {
     /* Split processes 0 and 1 into their own communicators for one-way
     * communication. */
     MPI_CHECK(MPI_Comm_split(MPI_COMM_WORLD, info.rank <= 1, info.rank,
-                             &info.comm));
+                             &info.comm), true);
 
     // Make a message to make availble via a window.
     float buf[MSG_SIZE];
@@ -69,25 +67,26 @@ int main(int argc, char *argv[]) {
     MPI_Win win;
     if (info.rank == 0) {
         MPI_CHECK(MPI_Win_create(MPI_BOTTOM, 0, sizeof(float), MPI_INFO_NULL,
-                                 info.comm, &win));
+                                 info.comm, &win), true);
     } else {
         /* Expose the memory we want to put data into, and specify the current
         * byte size of the buffer. */
         MPI_CHECK(MPI_Win_create(buf, buf_size * sizeof(float), sizeof(float),
-                                 MPI_INFO_NULL, info.comm, &win));
+                                 MPI_INFO_NULL, info.comm, &win), true);
     }
 
     // Start timing.
     const double start_time = MPI_Wtime();
 
     // Put ten floats from rank 0's buffer into rank 1's window.
-    MPI_CHECK(MPI_Win_fence(0, win));
+    MPI_CHECK(MPI_Win_fence(0, win), false);
     if (info.rank == 0) {
-        MPI_Put(buf, buf_size, MPI_FLOAT, 1, 0, buf_size, MPI_FLOAT, win);
+        MPI_CHECK(MPI_Put(buf, buf_size, MPI_FLOAT, 1, 0, buf_size, MPI_FLOAT,
+                          win), false);
     }
 
     // Complete the 'Put' operation.
-    MPI_CHECK(MPI_Win_fence(0, win));
+    MPI_CHECK(MPI_Win_fence(0, win), false);
 
     // Stop timing and calculate the execution time.
     const double end_time = MPI_Wtime();
@@ -104,7 +103,8 @@ int main(int argc, char *argv[]) {
     // Open a file for storing collected data.
     MPI_File fh;
     MPI_CHECK(MPI_File_open(MPI_COMM_WORLD, data_file_path,
-                            MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL, &fh));
+                            MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL,
+                            &fh), true);
 
     rc = write_execution_time(&info, fh, true, "rma_broadcast", &exec_time);
     if (rc != 0) {
@@ -115,10 +115,10 @@ int main(int argc, char *argv[]) {
     }
 
     // Free gathered resources.
-    MPI_CHECK(MPI_File_close(&fh));
-    MPI_CHECK(MPI_Win_free(&win));
-    MPI_CHECK(MPI_Comm_free(&info.comm));
-    MPI_CHECK(MPI_Finalize());
+    MPI_CHECK(MPI_File_close(&fh), true);
+    MPI_CHECK(MPI_Win_free(&win), true);
+    MPI_CHECK(MPI_Comm_free(&info.comm), true);
+    MPI_CHECK(MPI_Finalize(), true);
 
     return EXIT_SUCCESS;
-    }
+}

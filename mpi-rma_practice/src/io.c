@@ -50,7 +50,7 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
         if (info->rank == 0) {
             const char* header = "rank,operation,execution_time\n";
             MPI_CHECK(MPI_File_write(file, header, strlen(header), MPI_CHAR,
-                                     MPI_STATUS_IGNORE));
+                                     MPI_STATUS_IGNORE), true);
         }
 
         MPI_Barrier(info->comm);
@@ -66,7 +66,7 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
     MPI_Offset rank_offset = header_offset + (info->rank * line_len);
 
     MPI_CHECK(MPI_File_write_at(file, rank_offset, buffer, line_len, MPI_CHAR,
-                                MPI_STATUS_IGNORE));
+                                MPI_STATUS_IGNORE), true);
     
     return 0;
 }
