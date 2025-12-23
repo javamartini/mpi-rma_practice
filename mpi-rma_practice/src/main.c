@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
-    write_execution_time(&info, fh, true, "yurr", &exec_time);
+    write_execution_time(&info, fh, true, "rma_broadcast", &exec_time);
 
     // Free gathered resources.
     MPI_File_close(&fh);

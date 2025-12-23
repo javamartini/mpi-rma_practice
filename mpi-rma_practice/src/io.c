@@ -59,7 +59,7 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
     // The data to be written.
     char buffer[128];
     int line_len = snprintf(buffer, sizeof(buffer), "%3d,%-12s,%f\n",
-                            info->rank, op, &exec_time);
+                            info->rank, op, *exec_time);
     
     // Calculate the offset to skip writing over the header.
     MPI_Offset header_offset = 30;
