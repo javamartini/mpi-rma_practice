@@ -1,5 +1,5 @@
 // Inter-process commmunication.
-#include "comm.h"
+#include "utils.h"
 #include <mpi.h>
 
 // I/O-related headers and libraries.

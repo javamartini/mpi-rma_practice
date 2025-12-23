@@ -1,5 +1,5 @@
-#ifndef COMM_H
-#define COMM_H
+#ifndef UTILS_H
+#define UTILS_H
 
 #include <mpi.h>
 
@@ -9,4 +9,4 @@ typedef struct WorldInfo {
     MPI_Comm comm;
 } WorldInfo;
 
-#endif // COMM_H
+#endif // UTILS_H
