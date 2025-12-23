@@ -109,7 +109,13 @@ int main(int argc, char *argv[]) {
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
-    write_execution_time(&info, fh, true, "rma_broadcast", &exec_time);
+    rc = write_execution_time(&info, fh, true, "rma_broadcast", &exec_time);
+    if (rc != 0) {
+        fprintf(stderr,
+                "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
+                info.rank, rc);
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    }
 
     // Free gathered resources.
     MPI_File_close(&fh);
