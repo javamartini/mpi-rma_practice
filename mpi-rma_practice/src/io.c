@@ -49,15 +49,8 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
     if (is_header) {
         if (info->rank == 0) {
             const char* header = "rank,operation,execution_time\n";
-            rc = MPI_File_write(file, header, strlen(header), MPI_CHAR,
-                                MPI_STATUS_IGNORE);
-            if (rc != MPI_SUCCESS) {
-                char err_str[MPI_MAX_ERROR_STRING];
-                int err_len = -1;
-                MPI_Error_string(rc, err_str, &err_len);
-                fprintf(stderr, "MPI_File_write(): %s\n", err_str);
-                return 1;
-            }
+            MPI_CHECK(MPI_File_write(file, header, strlen(header), MPI_CHAR,
+                                     MPI_STATUS_IGNORE));
         }
 
         MPI_Barrier(info->comm);
@@ -72,15 +65,8 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
     MPI_Offset header_offset = 30;
     MPI_Offset rank_offset = header_offset + (info->rank * line_len);
 
-    rc = MPI_File_write_at(file, rank_offset, buffer, line_len, MPI_CHAR,
-                           MPI_STATUS_IGNORE);
-    if (rc != MPI_SUCCESS) {
-        char err_str[MPI_MAX_ERROR_STRING];
-        int err_len = -1;
-        MPI_Error_string(rc, err_str, &err_len);
-        fprintf(stderr, "MPI_File_open(): %s\n", err_str);
-        return 1;
-    }
+    MPI_CHECK(MPI_File_write_at(file, rank_offset, buffer, line_len, MPI_CHAR,
+                                MPI_STATUS_IGNORE));
     
     return 0;
 }
