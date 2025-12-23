@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define MSG_SIZE 10
 
@@ -39,8 +40,7 @@ int main(int argc, char *argv[]) {
 
     /* Split processes 0 and 1 into their own communicators for one-way
     * communication. */
-    MPI_Comm comm;
-    MPI_Comm_split(MPI_COMM_WORLD, info.rank <= 1, info.rank, &comm);
+    MPI_Comm_split(MPI_COMM_WORLD, info.rank <= 1, info.rank, &info.comm);
 
     // Make a message to make availble via a window.
     float buf[MSG_SIZE];
@@ -64,13 +64,13 @@ int main(int argc, char *argv[]) {
     // Create a window for both processes based on the buffer being put.
     MPI_Win win;
     if (info.rank == 0) {
-        MPI_Win_create(MPI_BOTTOM, 0, sizeof(float), MPI_INFO_NULL, comm,
+        MPI_Win_create(MPI_BOTTOM, 0, sizeof(float), MPI_INFO_NULL, info.comm,
                        &win);
     } else {
         /* Expose the memory we want to put data into, and specify the current
         * byte size of the buffer. */
         MPI_Win_create(buf, buf_size * sizeof(float), sizeof(float),
-                       MPI_INFO_NULL, comm, &win);
+                       MPI_INFO_NULL, info.comm, &win);
     }
 
     // Start timing.
@@ -87,8 +87,7 @@ int main(int argc, char *argv[]) {
 
     // Stop timing and calculate the execution time.
     const double end_time = MPI_Wtime();
-    const double execution_time = end_time - start_time;
-    printf("execution time: %f\n", execution_time);
+    double exec_time = end_time - start_time;
 
     printf("rank: %d, buffer: ", info.rank);
     for (size_t i = 0; i < buf_size; i++) {
@@ -110,10 +109,12 @@ int main(int argc, char *argv[]) {
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     }
 
+    write_execution_time(&info, fh, true, "yurr", &exec_time);
+
     // Free gathered resources.
     MPI_File_close(&fh);
     MPI_Win_free(&win);
-    MPI_Comm_free(&comm);
+    MPI_Comm_free(&info.comm);
     MPI_Finalize();
 
     return EXIT_SUCCESS;

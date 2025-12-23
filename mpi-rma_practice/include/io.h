@@ -10,7 +10,8 @@ struct WorldInfo;   // Forward declaration of MPI world info.
 int ensure_data_dir(struct WorldInfo* info, const char* data_dir_path);
 
 // Write execution time data of each process to a file.
-int write_execution_time(struct WorldInfo* info, MPI_File* file,
-                         const char* op, double* exec_time);
+int write_execution_time(struct WorldInfo* info, MPI_File file,
+                         const bool is_header, const char* op,
+                         double* exec_time);
 
 #endif // IO_HPP
