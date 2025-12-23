@@ -10,25 +10,57 @@
 // For filesystem traversal and operations.
 #include <dirent.h>
 #include <sys/stat.h>
+#include <limits.h>
+
+// Attempt to gather data from hopefully set XDG environment variables.
+int get_data_path(char** data_path) {
+    char* env = NULL;
+    
+    // Attempt to first gather the XDG specification of the data directory.
+    env = getenv("XDG_DATA_HOME");
+    if (env && env[0] != '\0') {
+        *data_path = env;
+        return 0;
+    }
+
+    // If unable, fallback to the HOME environment variable.
+    env = getenv("HOME");
+    if (env && env[0] != '\0') {
+        *data_path = env;
+        return 0;
+    }
+
+    return 1;
+}
 
 // Ensure the data directory is present.
-int ensure_data_dir(struct WorldInfo* info, const char* data_dir_path) {
+int ensure_data_dir(struct WorldInfo* info, char* path) {
     if (info->rank != 0) {
         return 0;
     }
 
     int rc = -1;
-    bool found_dir = false;
-    //struct dirent* dir_info;
-    DIR* dir = opendir(data_dir_path);
 
+    // Gather the path to the data directory.
+    char* base_dir = NULL;
+    rc = get_data_path(&base_dir);
+    if (rc != 0) {
+        fprintf(stderr, "Unable to find the data directory path\n");
+        return 1;
+    }
+
+    // Create the full directory path.
+    snprintf(path, PATH_MAX, "%s/mpi-rma_practice", base_dir);
+
+    bool found_dir = false;
+    DIR* dir = opendir(path);
     if (dir != NULL) {
         found_dir = true;
         closedir(dir);
     }
 
     if (!found_dir) {
-        rc = mkdir(data_dir_path,
+        rc = mkdir(path,
                    S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
         if (rc != 0) {
         perror("mkdir()");
@@ -50,7 +82,8 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
         if (info->rank == 0) {
             const char* header = "rank,operation,execution_time\n";
             MPI_CHECK(MPI_File_write(file, header, strlen(header), MPI_CHAR,
-                                     MPI_STATUS_IGNORE), true);
+                                     MPI_STATUS_IGNORE),
+                      true);
         }
 
         MPI_Barrier(info->comm);
