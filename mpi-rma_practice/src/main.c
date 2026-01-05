@@ -44,7 +44,6 @@ int main(int argc, char *argv[]) {
 
     // Build the path to the actual file.
     snprintf(data_file_path, PATH_MAX, "%s/exec_times.csv", data_dir_path);
-    printf("path: %s\n", data_file_path);
 
     MPI_Barrier(MPI_COMM_WORLD);
 
