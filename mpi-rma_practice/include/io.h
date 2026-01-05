@@ -7,7 +7,7 @@
 struct WorldInfo;   // Forward declaration of MPI world info.
 
 // Attempt to gather data from hopefully set XDG environment variables.
-int find_data_dir_path(char** data_path);
+int find_data_dir_path(char** data_path, int* is_xdg);
 
 // Ensure the data directory is present for data storage.
 int ensure_data_dir(struct WorldInfo* info, char* path);

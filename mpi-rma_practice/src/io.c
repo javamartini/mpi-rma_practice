@@ -2,7 +2,6 @@
 #include "utils.h"
 
 #include <stdio.h>
-#include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
 #include <errno.h>
@@ -13,12 +12,13 @@
 #include <limits.h>
 
 // Attempt to gather data from hopefully set XDG environment variables.
-int find_data_dir_path(char** data_path) {
+int find_data_dir_path(char** data_path, int* is_xdg) {
     char* env = NULL;
     
     // Attempt to first gather the XDG specification of the data directory.
     env = getenv("XDG_DATA_HOME");
     if (env && env[0] != '\0') {
+        *is_xdg = 0;
         *data_path = env;
         return 0;
     }
@@ -40,17 +40,22 @@ int ensure_data_dir(struct WorldInfo* info, char* path) {
     }
 
     int rc = -1;
+    int is_xdg = 1;
 
     // Gather the path to the data directory.
     char* base_dir = NULL;
-    rc = find_data_dir_path(&base_dir);
+    rc = find_data_dir_path(&base_dir, &is_xdg);
     if (rc != 0) {
         fprintf(stderr, "Unable to find the data directory path\n");
         return 1;
     }
 
     // Create the full directory path.
-    snprintf(path, PATH_MAX, "%s/mpi-rma_practice", base_dir);
+    if (is_xdg == 0) {
+        snprintf(path, PATH_MAX, "%s/mpi-rma_practice", base_dir);
+    } else {
+        snprintf(path, PATH_MAX, "%s/.mpi-rma_practice", base_dir);
+    }
 
     bool found_dir = false;
     DIR* dir = opendir(path);
