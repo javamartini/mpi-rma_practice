@@ -13,7 +13,7 @@
 #include <limits.h>
 
 // Attempt to gather data from hopefully set XDG environment variables.
-int get_data_path(char** data_path) {
+int find_data_dir_path(char** data_path) {
     char* env = NULL;
     
     // Attempt to first gather the XDG specification of the data directory.
@@ -43,7 +43,7 @@ int ensure_data_dir(struct WorldInfo* info, char* path) {
 
     // Gather the path to the data directory.
     char* base_dir = NULL;
-    rc = get_data_path(&base_dir);
+    rc = find_data_dir_path(&base_dir);
     if (rc != 0) {
         fprintf(stderr, "Unable to find the data directory path\n");
         return 1;
