@@ -3,3 +3,9 @@ build/
 
 # Caching directory for CLangd.
 .cache/
+
+# Project directory of QT Creator.
+.qtcreator/
+
+# Directory for SLURM scripts.
+slurm/
