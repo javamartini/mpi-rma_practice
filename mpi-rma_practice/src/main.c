@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 
     // Open a file for storing collected data.
     MPI_File fh;
-    MPI_CHECK(MPI_File_open(MPI_COMM_WORLD, data_dir_path,
+    MPI_CHECK(MPI_File_open(MPI_COMM_WORLD, data_file_path,
                             MPI_MODE_CREATE | MPI_MODE_RDWR, MPI_INFO_NULL,
                             &fh),
               true);
