@@ -61,6 +61,8 @@ int main(int argc, char *argv[]) {
 
     int total_written = 0;
     for (int j = 1; j <= 100; j++) {
+        MPI_Barrier(MPI_COMM_WORLD);
+        
         // Make a message to make availble via a window.
         float buf[MSG_SIZE];
         if (info.rank == 0) {
