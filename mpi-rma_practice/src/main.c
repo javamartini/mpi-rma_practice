@@ -52,36 +52,6 @@ int main(int argc, char *argv[]) {
                              &info.comm),
               true);
 
-    // Make a message to make availble via a window.
-    float buf[MSG_SIZE];
-    if (info.rank == 0) {
-        for (int i = 0; i < MSG_SIZE; i++) {
-            buf[i] = 32.4;
-        }
-    } else {
-        for (int i = 0; i < MSG_SIZE; i++) {
-            buf[i] = 0;
-        }
-    }
-    size_t buf_size = sizeof(buf) / sizeof(buf[0]);
-
-    printf("rank: %d, buffer: ", info.rank);
-    for (size_t i = 0; i < buf_size; i++) {
-        printf("%f ", buf[i]);
-    }
-    printf("\n");
-
-    double exec_time = 0.000000;
-    rma(buf, buf_size, &info, &exec_time);
-
-    printf("rank: %d, buffer: ", info.rank);
-    for (size_t i = 0; i < buf_size; i++) {
-        printf("%f ", buf[i]);
-    }
-    printf("\n");
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
     // Open a file for storing collected data.
     MPI_File fh;
     MPI_CHECK(MPI_File_open(MPI_COMM_WORLD, data_file_path,
@@ -89,12 +59,57 @@ int main(int argc, char *argv[]) {
                             &fh),
               true);
 
-    rc = write_execution_time(&info, fh, true, "rma_broadcast", &exec_time);
-    if (rc != 0) {
-        fprintf(stderr,
-                "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
-                info.rank, rc);
-        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+    int total_written = 0;
+    for (int j = 0; j < 100; j++) {
+        // Make a message to make availble via a window.
+        float buf[MSG_SIZE];
+        if (info.rank == 0) {
+            for (int i = 0; i < MSG_SIZE; i++) {
+                buf[i] = 32.4;
+            }
+        } else {
+            for (int i = 0; i < MSG_SIZE; i++) {
+                buf[i] = 0;
+            }
+        }
+        size_t buf_size = sizeof(buf) / sizeof(buf[0]);
+
+        printf("rank: %d, buffer: ", info.rank);
+        for (size_t i = 0; i < buf_size; i++) {
+            printf("%f ", buf[i]);
+        }
+        printf("\n");
+
+        double exec_time = 0.000000;
+        rma(buf, buf_size, &info, &exec_time);
+
+        printf("rank: %d, buffer: ", info.rank);
+        for (size_t i = 0; i < buf_size; i++) {
+            printf("%f ", buf[i]);
+        }
+        printf("\n");
+
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        if (j == 0) {
+            rc = write_execution_time(&info, fh, true, &total_written,
+                                      "rma_broadcast", &exec_time);
+            if (rc != 0) {
+                fprintf(stderr,
+                        "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
+                        info.rank, rc);
+                MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+            }
+        } else {
+            rc = write_execution_time(&info, fh, false, &total_written,
+                                      "rma_broadcast", &exec_time);
+            if (rc != 0) {
+                fprintf(stderr,
+                        "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
+                        info.rank, rc);
+                MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+            }
+        }
     }
 
     // Free gathered resources.
