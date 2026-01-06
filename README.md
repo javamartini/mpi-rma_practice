@@ -13,6 +13,12 @@ no arguments. Just run it with `mpirun`.
 mpirun -n 2 ./build/mpi-rma
 ```
 
+The application will want a place to write data to a file. It will first search
+for environment variable `XDG_DATA_HOME`, but then search for `HOME` as a
+fallback. Data will be written in the directory `mpi-rma_practice` if the
+`XDG_DATA_HOME` variable was found. If the `HOME` variable was found, then the
+data can be found at `~/.mpi-rma_practice`.
+
 ## Building
 
 The application is built using CMake, so that the application can be run across
