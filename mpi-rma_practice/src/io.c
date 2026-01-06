@@ -79,7 +79,7 @@ int ensure_data_dir(struct WorldInfo* info, char* path) {
 // Write execution time data of each process to a file.
 int write_execution_time(struct WorldInfo* info, MPI_File file,
                          const bool is_header, int* total_written,
-                         const char* op, double* exec_time) {
+                         const char* op, double* exec_time, int round) {
     int rc = -1;
 
     // If the header has not yet been writte, write that.
@@ -96,8 +96,8 @@ int write_execution_time(struct WorldInfo* info, MPI_File file,
 
     // The data to be written.
     char buffer[128];
-    int line_len = snprintf(buffer, sizeof(buffer), "%3d,%-12s,%f\n",
-                            info->rank, op, *exec_time);
+    int line_len = snprintf(buffer, sizeof(buffer), "%3d,%-12s,%f,%4d\n",
+                            info->rank, op, *exec_time, round);
     
     // Calculate the offset to skip writing over the header.
     MPI_Offset header_offset = 30;

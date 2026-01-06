@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
               true);
 
     int total_written = 0;
-    for (int j = 0; j < 100; j++) {
+    for (int j = 1; j <= 100; j++) {
         // Make a message to make availble via a window.
         float buf[MSG_SIZE];
         if (info.rank == 0) {
@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 
         if (j == 0) {
             rc = write_execution_time(&info, fh, true, &total_written,
-                                      "rma_broadcast", &exec_time);
+                                      "rma_broadcast", &exec_time, j);
             if (rc != 0) {
                 fprintf(stderr,
                         "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
             }
         } else {
             rc = write_execution_time(&info, fh, false, &total_written,
-                                      "rma_broadcast", &exec_time);
+                                      "rma_broadcast", &exec_time, j);
             if (rc != 0) {
                 fprintf(stderr,
                         "Rank %d aborting due to exit code of ensure_data_dir(): %d\n",

@@ -15,6 +15,6 @@ int ensure_data_dir(struct WorldInfo* info, char* path);
 // Write execution time data of each process to a file.
 int write_execution_time(struct WorldInfo* info, MPI_File file,
                          const bool is_header, int* total_written,
-                         const char* op, double* exec_time);
+                         const char* op, double* exec_time, int round);
 
 #endif // IO_HPP
