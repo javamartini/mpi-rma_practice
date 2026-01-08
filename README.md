@@ -19,6 +19,29 @@ fallback. Data will be written in the directory `mpi-rma_practice` if the
 `XDG_DATA_HOME` variable was found. If the `HOME` variable was found, then the
 data can be found at `~/.mpi-rma_practice`.
 
+To visualize the data from the program, there are python scripts provided. It
+is best to create a Python 3 virtual environment to isolate installed packages
+for the scripts. The following assumes that you are at the project root
+directory.
+
+```
+python3 -m venv .venv
+
+# If using bash.
+source .venv/bin/activate
+
+# If use sh.
+. .venv/bin/activate
+
+python3 -m pip install -r pip_requirements.txt
+```
+
+Now you can run the Python scripts for data visualization without installing
+packages system-wide. Isolation is peak.
+
+**NOTE**: To leave the virtual environment, run `deactivate` or
+`.venv/bin/deactivate`.
+
 ## Building
 
 The application is built using CMake, so that the application can be run across
