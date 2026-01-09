@@ -4,5 +4,8 @@ build/
 # Directory for SLURM scripts.
 slurm/
 
-# Python virtual environment.
+# Python-related directories.
 .venv/
+venv/
+python/graph/__pycache__
+python/utils/__pycache__
